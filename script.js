@@ -1,10 +1,28 @@
 "use strict";
 var vertexshader_source = `
 
+#version 300es
+
+in vec4 a_position;
+
+void main(){
+
+  gl_position = a_position
+}
+
 `;
 
-
 var fragmentshader_source = `
+
+#version 300es
+
+precision highp float;
+
+out vec4 outColor;
+
+void main(){
+  outColor = vec4(1,0,0.5,1);
+}
 
 `;
 
