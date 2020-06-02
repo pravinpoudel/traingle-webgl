@@ -128,7 +128,6 @@ function main() {
         var count = 6;
 
         gl.drawArrays(primitiveType, offset, count);
-
     }
 
 }
