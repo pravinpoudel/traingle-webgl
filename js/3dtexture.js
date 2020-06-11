@@ -41,11 +41,9 @@ function main() {
     console.log("i am here");
     var canvas = document.querySelector("#c");
     var gl = canvas.getContext('webgl2');
-
     if (!gl) {
         return;
     }
-
     var program = webglUtils.createProgramFromSources(gl, [vertexShaderSource, fragmentShaderSource]);
 
     var positionAttribLocation = gl.getAttribLocation(program, 'a_position');
