@@ -6,7 +6,7 @@
     <style type="text/css">
     @import url("https://webgl2fundamentals.org/webgl/resources/webgl-tutorials.css");
 
-   /* body {
+    /* body {
         overflow: hidden;
     }*/
 
@@ -21,9 +21,37 @@
 <body>
     <canvas id="c">
     </canvas>
+    <script id="vertex-shader-3d" type="x-shader/x-vertex">
+        attribute vec4 a_position;
+        attribute vec4 a_color;
+
+        uniform mat4 u_matrix;
+
+        varying vec4 v_color;
+
+        void main() {
+         // Multiply the position by the matrix.
+         gl_Position = u_matrix * a_position;
+
+         // Pass the color to the fragment shader.
+         v_color = a_color;
+
+}
+</script>
+    <!-- fragment shader -->
+    <script id="fragment-shader-3d" type="x-shader/x-fragment">
+        precision mediump float;
+
+        // Passed in from the vertex shader.
+        varying vec4 v_color;
+
+        void main() {
+           gl_FragColor = v_color;
+        }
+</script>
     <script src="https://webgl2fundamentals.org/webgl/resources/webgl-utils.js"></script>
     <script src="https://webgl2fundamentals.org/webgl/resources/m4.js"></script>
-    <script type="text/javascript" src="js/drawcubes.js"></script>
+    <script type="text/javascript" src="js/camera.js"></script>
     <!-- <script type="text/javascript" src="js/3dtexture.js"></script> -->
     <!-- <script type="text/javascript" src="script.js"></script> -->
     <!-- <script type="text/javascript" src="js/varying.js"></script> -->
