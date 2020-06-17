@@ -95,7 +95,7 @@ function main() {
     const cubeVertexIndices = new Uint16Array([
         0, 1, 2, 0, 2, 3, 4, 5, 6, 4, 6, 7, 8, 9, 10, 8, 10, 11, 12, 13, 14, 12, 14, 15, 16, 17, 18, 16, 18, 19, 20, 21, 22, 20, 22, 23,
 
-    ],);
+    ], );
 
     const cubeVertexArray = gl.createVertexArray();
     gl.bindVertexArray(cubeVertexArray);
@@ -111,12 +111,12 @@ function main() {
     gl.bufferData(gl.ARRAY_BUFFER, cubeVertexNormals, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(normalLoc);
     gl.vertexAttribPointer(
-    	normalLoc,
-    	3,
-    	gl.FLOAT,
-    	false,
-    	0,
-    	0
+        normalLoc,
+        3,
+        gl.FLOAT,
+        false,
+        0,
+        0
     );
 
     const texcoordBuffer = gl.createBuffer();
@@ -124,19 +124,56 @@ function main() {
     gl.bufferData(gl.ARRAY_BUFFER, cubeVertexTexcoord, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(texcoordLoc);
     gl.vertexAttribPointer(
-    	texcoordLoc,
-    	2,
-    	gl.Float,
-    	false,
-    	0,
-    	0
-    	);
+        texcoordLoc,
+        2,
+        gl.Float,
+        false,
+        0,
+        0
+    );
 
     const indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndices, gl.STATIC_DRAW);
 
-    
+    gl.bindVertexArray(null);
+
+    const checkerTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, checkerTexture);
+    gl.texImage2D(
+        gl.TEXTURE_2D,
+        0, //mipmap
+        gl.LUMINANCE, //internal format
+        4, //width
+        4, //height
+        0, //border
+        gl.LUMINANCE, //format
+        gl.UNSIGNED_BYTE,
+        new Uint8Array([
+            192, 128, 192, 128,
+            128, 192, 128, 192,
+            192, 128, 192, 128,
+            128, 192, 128, 192
+        ])
+    );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    const decalTexture = gl.createTexture();
+    gl.bindTexture(gl.Texture_2d, decalTexture);
+    gl.texImage2D(
+    	gl.TEXTURE_2D,
+    	0,
+    	gl.RGBA,
+    	gl.RGBA,
+    	GL.UNSIGNED_BYTE,
+    	makeTextCanvas('F', 32, 32, 'red'));
+    gl.generateMipmap(gl.TEXTURE_2D);
+
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    gl.clearColor(0.5, 0.7, 1.0, 1.0);
 }
 
 main();
