@@ -3,8 +3,8 @@
 
 function main() {
 
-	var canvas = document.querySelector("#c");
-	var gl = canvas.getContext("webgl2");
+	var canvas = document.querySelector("#canvas");
+	var gl = canvas.getContext("webgl");
 	if(!gl){
 		return;
 	}
@@ -23,16 +23,16 @@ function main() {
 	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
 	setColors(gl);
 
-	function redToDegree(r){
+	function redToDeg(r){
 		return r*180/Math.PI;
 	}
 
-	function degToRadian(d){
+	function degToRad(d){
 		return d*Math.PI/180;
 	}
 
-	var cameraAngleRadian = degToRadian(0);
-	var fieldOfViewRadians = degToRadian(60);
+	var cameraAngleRadians = degToRad(0);
+	var fieldOfViewRadians = degToRad(60);
 
 	drawScene();
 
@@ -48,14 +48,14 @@ function drawScene(){
 	gl.enable(gl.CULL_FACE);
 	
 	gl.enable(gl.DEPTH_TEST);
-	
-	gl.useProgram(program);
-	
+
+  gl.useProgram(program);
+  
 	gl.enableVertexAttribArray(positionLocation);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
-  var size =3;
+  var size = 3;
   var type = gl.FLOAT;
   var normalize = false;
   var stride = 0;
@@ -65,12 +65,10 @@ function drawScene(){
 
   gl.enableVertexAttribArray(colorLocation);
   
-  console.log(colorLocation);
-
   gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
 
   var size = 3;
-  var type = gl.UNSIGNED_BYE;
+  var type = gl.UNSIGNED_BYTE;
   var normalize = true;
   var stride = 0;
   var offset = 0;
@@ -85,15 +83,15 @@ function drawScene(){
   var zFar = 2000;
   var projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
 
-  var cameraMatrix = m4.yRotation(cameraAngleRadian);
+  var cameraMatrix = m4.yRotation(cameraAngleRadians);
   cameraMatrix = m4.translate(cameraMatrix, 0, 0, radius*1.5);
 
   var viewMatrix = m4.inverse(cameraMatrix);
 
   var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
-  for (var i = 0; i < numFs; ++i) {
-    var angle = i*Math.PI *2/numFs;
+  for (var ii = 0; ii < numFs; ++ii) {
+    var angle = ii*Math.PI *2/numFs;
 
     var x = Math.cos(angle)*radius;
     var y = Math.sin(angle)*radius;
