@@ -23,7 +23,7 @@ function main() {
 	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
 	setColors(gl);
 
-	function redToDeg(r){
+	function radToDeg(r){
 		return r*180/Math.PI;
 	}
 
@@ -33,6 +33,13 @@ function main() {
 
 	var cameraAngleRadians = degToRad(0);
 	var fieldOfViewRadians = degToRad(60);
+
+  webglLessonsUI.setupSlider("#cameraAngle", {value: radToDeg(cameraAngleRadians), slide: updateCameraAngle, min:-360, max:360});
+
+  function updateCameraAngle(event, ui){
+    cameraAngleRadians = degToRad(ui.value);
+    drawScene();
+  }
 
 	drawScene();
 
