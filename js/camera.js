@@ -82,7 +82,7 @@ function drawScene(){
 
   gl.vertexAttribPointer(colorLocation, size, type, normalize, stride, offset);
   
-  var numFs = 5;
+  var numFs = 10;
   var radius = 200;
 
   var aspect = gl.canvas.clientWidth/gl.canvas.clientHeight;
@@ -100,8 +100,8 @@ function drawScene(){
   for (var ii = 0; ii < numFs; ++ii) {
     var angle = ii*Math.PI *2/numFs;
 
-    var x = Math.cos(angle)*radius;
-    var y = Math.sin(angle)*radius;
+    var x = Math.cos(angle)*100;
+    var y = Math.sin(angle)*100;
 
     var matrix = m4.translate(viewProjectionMatrix, x, 0, y );
 
