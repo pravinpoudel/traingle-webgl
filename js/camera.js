@@ -10,9 +10,20 @@ function main() {
         return;
     }
 
-    requestAnimationFrame(()=>{
-        init(gl);
-    });
+    const startElement = document.querySelector('button')
+    startElement.addEventListener('click', start, { once: true });
+
+    function start() {
+        requestAnimationFrame(() => {
+            init(gl);
+        });
+        requestAnimationFrame(() => {});
+        requestAnimationFrame(() => {});
+        requestAnimationFrame(() => {});
+        requestAnimationFrame(() => {});
+        requestAnimationFrame(() => {});
+    }
+
 
 }
 
@@ -125,9 +136,9 @@ function init(gl) {
 
     }
 
-    requestAnimationFrame(()=>{
-        init(gl);
-    });
+    // requestAnimationFrame(()=>{
+    //     init(gl);
+    // });
 
 }
 
