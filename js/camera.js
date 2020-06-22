@@ -118,8 +118,8 @@ function init(gl) {
         var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
 
         for (var ii = 0; ii < numFs; ++ii) {
-            var angle = ii * Math.PI * 2 / numFs;
 
+            var angle = ii * Math.PI * 2 / numFs;
             var x = Math.cos(angle) * 100;
             var y = Math.sin(angle) * 100;
 
