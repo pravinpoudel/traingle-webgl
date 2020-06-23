@@ -63,7 +63,7 @@ function main() {
     gl.enableVertexAttribArray(acolorLoc);
 
     size = 3;
-    type = gl.FLOAT;
+    type = gl.UNSIGNED_BYTE;
     normalize = true;
     stride = 0;
     offset = 0;
@@ -98,7 +98,7 @@ function main() {
         let projection = m4.perspective(fov, aspect, 1, 1000);
 
         let camera = m4.yRotation(cameraAngle);
-        camera = m4.translate(camera, 0, 0, -300);
+        camera = m4.translate(camera, 0, 0, 300);
         let viewMatrix = m4.inverse(camera);
 
         let viewProjection = m4.multiply(projection, viewMatrix);
@@ -108,7 +108,7 @@ function main() {
         var primitives = gl.TRIANGLES;
        	var count = 16*6;
        	var offset = 0;
-       	gl.drawArrays(primitives, count, offset);
+       	gl.drawArrays(primitives, offset, count);
 
     }
 
