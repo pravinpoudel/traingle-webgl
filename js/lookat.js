@@ -3,20 +3,26 @@
 const vertexShader = `#version 300 es
 
 	in vec4 a_position;
-	
 	in vec3 a_normal;
 
+
 	out vec3 v_normal;
+	out vec3 v_surfaceToLight;
 
 	uniform mat4 u_matrix;
-
 	uniform mat4 viewProjectionMatrix;
+	uniform mat4 u_worldInverseTranspose;
+	uniform vec3 u_lightWorldPosition;
 
 	void main(){
 
 		gl_Position = viewProjectionMatrix*a_position;
 
-		v_normal = mat3(u_matrix)*a_normal;
+		v_normal = mat3(u_worldInverseTranspose)*a_normal;
+
+		vec3 surfaceWorldPosition = (u_matrix*a_position).xyz;
+
+		v_surfaceToLight = surfaceWorldPosition - u_lightWorldPosition; 
 	}
 `;
 
@@ -26,6 +32,7 @@ const fragShader = `#version 300 es
 	precision highp float;
 
 	in vec3 v_normal;
+	in vec3 v_surfaceToLight;
 	out vec4 frag_color;
 
 	uniform vec3 lightDirectionReverse;
@@ -34,8 +41,9 @@ const fragShader = `#version 300 es
 	void main(){
 		
 		vec3 normal = normalize(v_normal);
+		vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
 		
-		float light = dot(normal, lightDirectionReverse);
+		float light = dot(normal, surfaceToLightDirection);
 
 		frag_color = u_color;
 		
@@ -72,8 +80,9 @@ function init(gl) {
     // const acolorLoc = gl.getAttribLocation(program, 'a_color');
     const umatrixLoc = gl.getUniformLocation(program, 'viewProjectionMatrix');
     const worldMatrixLoc = gl.getUniformLocation(program, 'u_matrix');
+    const worldInverseTransposeLocation = gl.getUniformLocation(program, 'worldInverseTranspose');
     const ucolorLoc = gl.getUniformLocation(program, 'u_color');
-    const lightReverseLoc = gl.getUniformLocation(program, 'lightDirectionReverse');
+    const u_lightWorldPositionLocation = gl.getUniformLocation(program, 'u_lightWorldPosition');
 
     let vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
@@ -151,7 +160,7 @@ function init(gl) {
 
         gl.uniform4fv(ucolorLoc, [0.2, 1, 0.2, 1]);
 
-        gl.uniform3fv(lightReverseLoc, m4.normalize([0.5, 0.7, 1]));
+        gl.uniform3fv(u_lightWorldPositionLocation, [20, 30, 50]);
 
         let aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
 
@@ -164,6 +173,10 @@ function init(gl) {
         cameraAngle = degreeToRadian(cameraAngleDegree);
 
         let worldMatrix = m4.yRotation(cameraAngle);
+
+        let worldInverse = m4.inverse(worldMatrix);
+        let worldInverseTranspose = m4.transpose(worldInverse);
+        gl.uniformMatrix3fv(worldInverseTransposeLocation, false ,worldInverseTranspose);
 
         gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatrix);
 
