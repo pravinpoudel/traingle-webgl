@@ -3,15 +3,20 @@
 const vertexShader = `#version 300 es
 
 	in vec4 a_position;
-	in vec4 a_color;
+	
+	in vec3 a_normal;
 
-	out vec4 v_color;
+	out vec3 v_normal;
 
 	uniform mat4 u_matrix;
 
+	uniform mat4 viewProjectionMatrix;
+
 	void main(){
-		gl_Position = u_matrix*a_position;
-		v_color = a_color;
+
+		gl_Position = viewProjectionMatrix*a_position;
+
+		v_normal = mat3(u_matrix)*a_normal;
 	}
 `;
 
@@ -20,18 +25,31 @@ const fragShader = `#version 300 es
 
 	precision highp float;
 
-		in vec4 v_color;
-		out vec4 frag_color;
+	in vec3 v_normal;
+	out vec4 frag_color;
 
-		void main(){
-			frag_color = v_color;
+	uniform vec3 lightDirectionReverse;
+	uniform vec4 u_color;
+
+	void main(){
+		
+		vec3 normal = normalize(v_normal);
+		
+		float light = dot(normal, lightDirectionReverse);
+
+		frag_color = u_color;
+		
+		frag_color.xyz *= light;
+
 		}
 `;
 
 var cameraAngleDegree = 0;
+var cameraAngle = 0;
 const radius = 100;
-var increment = 10;
+var increment = 1;
 var numFs = 5;
+
 function main() {
 
     var canvas = document.querySelector("#canvas");
@@ -50,8 +68,12 @@ function init(gl) {
     const program = webglUtils.createProgramFromSources(gl, [vertexShader, fragShader]);
 
     const apositionLoc = gl.getAttribLocation(program, 'a_position');
-    const acolorLoc = gl.getAttribLocation(program, 'a_color');
-    const umatrixLoc = gl.getUniformLocation(program, 'u_matrix');
+    const anormalLoc = gl.getAttribLocation(program, 'a_normal');
+    // const acolorLoc = gl.getAttribLocation(program, 'a_color');
+    const umatrixLoc = gl.getUniformLocation(program, 'viewProjectionMatrix');
+    const worldMatrixLoc = gl.getUniformLocation(program, 'u_matrix');
+    const ucolorLoc = gl.getUniformLocation(program, 'u_color');
+    const lightReverseLoc = gl.getUniformLocation(program, 'lightDirectionReverse');
 
     let vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
@@ -68,20 +90,32 @@ function init(gl) {
     let offset = 0;
     gl.vertexAttribPointer(apositionLoc, size, type, normalize, stride, offset);
 
-    let colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    setColor(gl);
-    gl.enableVertexAttribArray(acolorLoc);
 
+    let normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    setNormals(gl);
+    gl.enableVertexAttribArray(anormalLoc);
     size = 3;
-    type = gl.UNSIGNED_BYTE;
-    normalize = true;
+    type = gl.FLOAT;
+    normalize = false;
     stride = 0;
     offset = 0;
-    gl.vertexAttribPointer(acolorLoc, size, type, normalize, stride, offset);
+    gl.vertexAttribPointer(anormalLoc, size, type, normalize, stride, offset);
+
+    // let colorBuffer = gl.createBuffer();
+    // gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    // setColor(gl);
+    // gl.enableVertexAttribArray(acolorLoc);
+
+    // size = 3;
+    // type = gl.UNSIGNED_BYTE;
+    // normalize = true;
+    // stride = 0;
+    // offset = 0;
+    // gl.vertexAttribPointer(acolorLoc, size, type, normalize, stride, offset);
 
     let fov = degreeToRadian(60);
-    let cameraAngle = degreeToRadian(cameraAngleDegree);
+    cameraAngle = degreeToRadian(cameraAngleDegree);
 
     function degreeToRadian(deg) {
         return deg * Math.PI / 180;
@@ -115,17 +149,26 @@ function init(gl) {
 
         gl.useProgram(program);
 
+        gl.uniform4fv(ucolorLoc, [0.2, 1, 0.2, 1]);
+
+        gl.uniform3fv(lightReverseLoc, m4.normalize([0.5, 0.7, 1]));
+
         let aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
 
         let projection = m4.perspective(fov, aspect, 1, 1000);
 
         const fPosition = [radius, 0, 0];
 
-        cameraAngle += increment;
+        cameraAngleDegree += increment;
 
-        increment += 0.01;
-        
-        let camera = m4.yRotation(cameraAngle);
+        cameraAngle = degreeToRadian(cameraAngleDegree);
+
+        let worldMatrix = m4.yRotation(cameraAngle);
+
+        gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatrix);
+
+        let camera = m4.yRotation(0);
+
         camera = m4.translate(camera, 0, 100, 300);
 
         let cameraPosition = [camera[12], camera[13], camera[14]];
@@ -138,11 +181,14 @@ function init(gl) {
 
         let viewProjection = m4.multiply(projection, viewMatrix);
 
+        viewProjection = m4.multiply(viewProjection, worldMatrix);
+
+
         for (var ii = 0; ii < numFs; ++ii) {
             var angle = ii * Math.PI * 2 / numFs;
 
-            var x = Math.cos(angle) * radius;
-            var z = Math.sin(angle) * radius;
+            var x = Math.cos(angle) * radius -50;
+            var z = Math.sin(angle) * radius -15;
             var matrix = m4.translate(viewProjection, x, 0, z);
 
             // Set the matrix.
@@ -154,14 +200,6 @@ function init(gl) {
             var count = 16 * 6;
             gl.drawArrays(primitiveType, offset, count);
         }
-        //     gl.uniformMatrix4fv(umatrixLoc, false, viewProjection);
-
-        //     var primitives = gl.TRIANGLES;
-        //     var count = 16 * 6;
-        //     var offset = 0;
-        //     gl.drawArrays(primitives, offset, count);
-
-        // }
 
         requestAnimationFrame(function() {
             init(gl)
@@ -170,10 +208,144 @@ function init(gl) {
     }
 }
 
+
+function setNormals(gl) {
+    var normals = new Float32Array([
+        // left column front
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+
+        // top rung front
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+
+        // middle rung front
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+
+        // left column back
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+
+        // top rung back
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+
+        // middle rung back
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+
+        // top
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+
+        // top rung right
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+
+        // under top rung
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+
+        // between top rung and middle
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+
+        // top of middle rung
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+
+        // right of middle rung
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+
+        // bottom of middle rung.
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+
+        // right of bottom
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+
+        // bottom
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+
+        // left side
+        -1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0,
+    ]);
+    gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
+}
+
+
 function setGeometry(gl) {
-
-    let positions = new Float32Array([
-
+    var positions = new Float32Array([
+        // left column front
         0, 0, 0,
         0, 150, 0,
         30, 0, 0,
@@ -300,10 +472,19 @@ function setGeometry(gl) {
         0, 0, 0,
         0, 150, 30,
         0, 150, 0,
-
     ]);
 
-    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW)
+    var matrix = m4.xRotation(Math.PI);
+    matrix = m4.translate(matrix, -50, -75, -15);
+
+    for (var ii = 0; ii < positions.length; ii += 3) {
+        var vector = m4.transformVector(matrix, [positions[ii + 0], positions[ii + 1], positions[ii + 2], 1]);
+        positions[ii + 0] = vector[0];
+        positions[ii + 1] = vector[1];
+        positions[ii + 2] = vector[2];
+    }
+
+    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
 }
 
 function setColor(gl) {
