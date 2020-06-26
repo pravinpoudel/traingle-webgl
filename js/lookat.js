@@ -44,6 +44,8 @@ const fragShader = `#version 300 es
 	uniform vec3 lightDirectionReverse;
 	uniform vec4 u_color;
 	uniform float u_shininess;
+	uniform vec3 u_lightColor;
+	uniform vec3 u_specularColor;
 
 	void main(){
 		
@@ -67,9 +69,9 @@ const fragShader = `#version 300 es
 
 		}
 
-		frag_color.rgb *= light;
+		frag_color.rgb *= light* u_lightColor;
 
-		frag_color.rgb += specular;
+		frag_color.rgb += specular * u_specularColor;
 
 		}
 `;
@@ -107,6 +109,10 @@ function init(gl) {
     const u_lightWorldPositionLocation = gl.getUniformLocation(program, 'u_lightWorldPosition');
     const viewWorldPositionLocation = gl.getUniformLocation(program, 'u_viewWorldPosition');
     const shininessLocation = gl.getUniformLocation(program, 'u_shininess');
+    const lightColorLoc = gl.getUniformLocation(program, 'u_lightColor');
+    const specColorLoc =  gl.getUniformLocation(program, 'u_specularColor');
+
+
     let vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
 
@@ -145,7 +151,7 @@ function init(gl) {
     // stride = 0;
     // offset = 0;
     // gl.vertexAttribPointer(acolorLoc, size, type, normalize, stride, offset);
-    let shininess = 100;
+    let shininess = 1;
 
     let fov = degreeToRadian(60);
     cameraAngle = degreeToRadian(cameraAngleDegree);
@@ -179,6 +185,10 @@ function init(gl) {
         gl.uniform3fv(u_lightWorldPositionLocation, [20, 30, 50]);
 
         gl.uniform1f(shininessLocation, shininess);
+
+        gl.uniform3fv(lightColorLoc, m4.normalize([1, 0.6, 0.6]));
+
+        gl.uniform3fv(specColorLoc, m4.normalize([1, 0.6, 0.6]));
 
         let aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
 
