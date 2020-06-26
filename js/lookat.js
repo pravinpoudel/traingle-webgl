@@ -22,7 +22,7 @@ const vertexShader = `#version 300 es
 
 		vec3 surfaceWorldPosition = (u_matrix*a_position).xyz;
 
-		v_surfaceToLight = surfaceWorldPosition - u_lightWorldPosition; 
+		v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition; 
 	}
 `;
 
@@ -33,6 +33,7 @@ const fragShader = `#version 300 es
 
 	in vec3 v_normal;
 	in vec3 v_surfaceToLight;
+
 	out vec4 frag_color;
 
 	uniform vec3 lightDirectionReverse;
@@ -41,12 +42,13 @@ const fragShader = `#version 300 es
 	void main(){
 		
 		vec3 normal = normalize(v_normal);
+
 		vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
 		
 		float light = dot(normal, surfaceToLightDirection);
 
 		frag_color = u_color;
-		
+
 		frag_color.xyz *= light;
 
 		}
@@ -80,7 +82,7 @@ function init(gl) {
     // const acolorLoc = gl.getAttribLocation(program, 'a_color');
     const umatrixLoc = gl.getUniformLocation(program, 'viewProjectionMatrix');
     const worldMatrixLoc = gl.getUniformLocation(program, 'u_matrix');
-    const worldInverseTransposeLocation = gl.getUniformLocation(program, 'worldInverseTranspose');
+    const worldInverseTransposeLocation = gl.getUniformLocation(program, 'u_worldInverseTranspose');
     const ucolorLoc = gl.getUniformLocation(program, 'u_color');
     const u_lightWorldPositionLocation = gl.getUniformLocation(program, 'u_lightWorldPosition');
 
@@ -176,8 +178,9 @@ function init(gl) {
 
         let worldInverse = m4.inverse(worldMatrix);
         let worldInverseTranspose = m4.transpose(worldInverse);
-        gl.uniformMatrix3fv(worldInverseTransposeLocation, false ,worldInverseTranspose);
+        gl.uniformMatrix4fv(worldInverseTransposeLocation, false ,worldInverseTranspose);
 
+        // console.log(worldInverseTranspose);
         gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatrix);
 
         let camera = m4.yRotation(0);
@@ -200,8 +203,8 @@ function init(gl) {
         for (var ii = 0; ii < numFs; ++ii) {
             var angle = ii * Math.PI * 2 / numFs;
 
-            var x = Math.cos(angle) * radius -50;
-            var z = Math.sin(angle) * radius -15;
+            var x = Math.cos(angle) * radius;
+            var z = Math.sin(angle) * radius;
             var matrix = m4.translate(viewProjection, x, 0, z);
 
             // Set the matrix.
