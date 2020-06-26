@@ -8,11 +8,13 @@ const vertexShader = `#version 300 es
 
 	out vec3 v_normal;
 	out vec3 v_surfaceToLight;
+	out vec3 v_surfaceToView;
 
 	uniform mat4 u_matrix;
 	uniform mat4 viewProjectionMatrix;
 	uniform mat4 u_worldInverseTranspose;
 	uniform vec3 u_lightWorldPosition;
+	uniform vec3 u_viewWorldPosition;
 
 	void main(){
 
@@ -23,6 +25,8 @@ const vertexShader = `#version 300 es
 		vec3 surfaceWorldPosition = (u_matrix*a_position).xyz;
 
 		v_surfaceToLight = u_lightWorldPosition - surfaceWorldPosition; 
+
+		v_surfaceToView = u_viewWorldPosition - surfaceWorldPosition;
 	}
 `;
 
@@ -33,6 +37,7 @@ const fragShader = `#version 300 es
 
 	in vec3 v_normal;
 	in vec3 v_surfaceToLight;
+	in vec3 v_surfaceToView;
 
 	out vec4 frag_color;
 
@@ -43,13 +48,21 @@ const fragShader = `#version 300 es
 		
 		vec3 normal = normalize(v_normal);
 
+		vec3 surfaceToView = normalize(v_surfaceToView);
+
 		vec3 surfaceToLightDirection = normalize(v_surfaceToLight);
+
+		vec3 halfVector = normalize(surfaceToView + surfaceToLightDirection);
+
+		float specular = dot(normal, halfVector);
 		
 		float light = dot(normal, surfaceToLightDirection);
 
 		frag_color = u_color;
 
 		frag_color.xyz *= light;
+
+		frag_color.xyz += specular;
 
 		}
 `;
@@ -85,6 +98,7 @@ function init(gl) {
     const worldInverseTransposeLocation = gl.getUniformLocation(program, 'u_worldInverseTranspose');
     const ucolorLoc = gl.getUniformLocation(program, 'u_color');
     const u_lightWorldPositionLocation = gl.getUniformLocation(program, 'u_lightWorldPosition');
+    const viewWorldPositionLocation = gl.getUniformLocation(program, 'u_viewWorldPosition');
 
     let vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
@@ -175,20 +189,17 @@ function init(gl) {
         cameraAngle = degreeToRadian(cameraAngleDegree);
 
         let worldMatrix = m4.yRotation(cameraAngle);
+        gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatrix);
 
         let worldInverse = m4.inverse(worldMatrix);
         let worldInverseTranspose = m4.transpose(worldInverse);
         gl.uniformMatrix4fv(worldInverseTransposeLocation, false ,worldInverseTranspose);
 
-        // console.log(worldInverseTranspose);
-        gl.uniformMatrix4fv(worldMatrixLoc, false, worldMatrix);
-
         let camera = m4.yRotation(0);
-
         camera = m4.translate(camera, 0, 100, 300);
-
         let cameraPosition = [camera[12], camera[13], camera[14]];
 
+        gl.uniform3fv(viewWorldPositionLocation, cameraPosition);
         // let up = [0, 1, 0];
 
         // camera = m4.lookAt(cameraPosition, fPosition, up);
