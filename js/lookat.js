@@ -43,6 +43,7 @@ const fragShader = `#version 300 es
 
 	uniform vec3 lightDirectionReverse;
 	uniform vec4 u_color;
+	uniform float u_shininess;
 
 	void main(){
 		
@@ -54,15 +55,21 @@ const fragShader = `#version 300 es
 
 		vec3 halfVector = normalize(surfaceToView + surfaceToLightDirection);
 
-		float specular = dot(normal, halfVector);
-		
 		float light = dot(normal, surfaceToLightDirection);
 
 		frag_color = u_color;
 
-		frag_color.xyz *= light;
+		float specular = 0.0;
 
-		frag_color.xyz += specular;
+		if(light > 0.0){
+
+			specular = pow(dot(normal, halfVector), u_shininess);
+
+		}
+
+		frag_color.rgb *= light;
+
+		frag_color.rgb += specular;
 
 		}
 `;
@@ -99,7 +106,7 @@ function init(gl) {
     const ucolorLoc = gl.getUniformLocation(program, 'u_color');
     const u_lightWorldPositionLocation = gl.getUniformLocation(program, 'u_lightWorldPosition');
     const viewWorldPositionLocation = gl.getUniformLocation(program, 'u_viewWorldPosition');
-
+    const shininessLocation = gl.getUniformLocation(program, 'u_shininess');
     let vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
 
@@ -138,6 +145,7 @@ function init(gl) {
     // stride = 0;
     // offset = 0;
     // gl.vertexAttribPointer(acolorLoc, size, type, normalize, stride, offset);
+    let shininess = 100;
 
     let fov = degreeToRadian(60);
     cameraAngle = degreeToRadian(cameraAngleDegree);
@@ -151,14 +159,6 @@ function init(gl) {
     }
 
     drawScene();
-
-    // webglLessonsUI.setupSlider("#cameraAngle", { value: radToDegree(cameraAngle), slide: updateCameraAngle, min: -360, max: 360 });
-
-    // function updateCameraAngle(event, ui) {
-    //     cameraAngle = degreeToRadian(ui.value);
-    //     drawScene();
-    // }
-
 
     function drawScene() {
 
@@ -178,6 +178,8 @@ function init(gl) {
 
         gl.uniform3fv(u_lightWorldPositionLocation, [20, 30, 50]);
 
+        gl.uniform1f(shininessLocation, shininess);
+
         let aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
 
         let projection = m4.perspective(fov, aspect, 1, 1000);
@@ -193,7 +195,7 @@ function init(gl) {
 
         let worldInverse = m4.inverse(worldMatrix);
         let worldInverseTranspose = m4.transpose(worldInverse);
-        gl.uniformMatrix4fv(worldInverseTransposeLocation, false ,worldInverseTranspose);
+        gl.uniformMatrix4fv(worldInverseTransposeLocation, false, worldInverseTranspose);
 
         let camera = m4.yRotation(0);
         camera = m4.translate(camera, 0, 100, 300);
