@@ -1,33 +1,32 @@
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <title>Traingle Webgl 2</title>
     <style type="text/css">
-    @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
+      @import url("https://webglfundamentals.org/webgl/resources/webgl-tutorials.css");
 
-    body {
+      body {
         margin: 0;
-    }
+      }
 
-    button {
+      button {
         position: absolute;
-    }
+      }
 
-    canvas {
+      canvas {
         width: 100vw;
         height: 100vh;
         display: block;
-    }
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <canvas id="canvas"></canvas>
     <div id="uiContainer">
-        <div id="ui">
-            <div id="shininess"></div>
-        </div>
+      <div id="ui">
+        <div id="shininess"></div>
+      </div>
     </div>
     <!--
 for most samples webgl-utils only provides shader compiling/linking and
@@ -36,12 +35,16 @@ See https://webglfundamentals.org/webgl/lessons/webgl-boilerplate.html
 and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
 for webgl-utils, m3, m4, and webgl-lessons-ui.
 -->
-    <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
-    <script src="https://webglfundamentals.org/webgl/resources/webgl-lessons-ui.js"></script>
-    <script src="https://webglfundamentals.org/webgl/resources/m4.js"></script>
-    <script src="https://greggman.github.io/webgl-helpers/webgl-gl-error-check.js"></script>
-    <script type="text/javascript" src="js/lookat.js"></script>
-    <!-- <script type="text/javascript" src="js/camera.js"></script> -->
-</body>
+    <script src="https://webgl2fundamentals.org/webgl/resources/twgl-full.min.js"></script>
 
+    <!-- <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+    <script src="https://webglfundamentals.org/webgl/resources/webgl-lessons-ui.js"></script> -->
+
+    <script src="https://webglfundamentals.org/webgl/resources/m4.js"></script>
+    <script src="https://webgl2fundamentals.org/webgl/resources/texture-utils.js"></script>
+    <script src="https://webgl2fundamentals.org/webgl/resources/chroma.min.js"></script>
+    <script src="https://greggman.github.io/webgl-helpers/webgl-gl-error-check.js"></script>
+    <script type="text/javascript" src="js/less-code-helper.js"></script>
+    <!-- <script type="text/javascript" src="js/camera.js"></script> -->
+  </body>
 </html>
