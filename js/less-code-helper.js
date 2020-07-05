@@ -162,7 +162,7 @@ function main() {
     var up = [0,1,0];
     var cameraMatrix = m4.lookAt(cameraPosition, target,up, uniformsThatAreTheSameForAllObjects.u_viewInverse);
 
-    var viewMatrix = m4.Inverse(cameraMatrix);
+    var viewMatrix = m4.inverse(cameraMatrix);
 
     var viewProjectionMatrix = m4.multiply(projectionMatrix, viewMatrix);
     gl.useProgram(program);
@@ -170,8 +170,40 @@ function main() {
 
     twgl.setUniforms(uniformSetters, uniformsThatareTheSameForAllObjects);
 
-    
+    objects.forEach(function(object){
+      var worldMatrix = m4.identity();
+      worldMatrix = m4.yRotate(worldMatrix, object.yRotation*time);
+      worldMatrix = m4.xRotate(worldMatrix, object.xRotation*time);
+      worldMatrix = m4.translate(
+        worldMatrix,
+        0,
+        0,
+        object.radius,
+        uniformsThatAreComputedForEachObject.u_worldViewProjection
+      );
 
+    m4.multiply(
+      viewProjectionMatrix,
+      worldMatrix,
+      uniformsThatAreComputedForEachObject.u_worldViewProjection
+    );
+
+    m4.transpose(
+      m4.inverse(worldMatrix),
+      uniformsThatAreComputedForEachObject.u_worldInverseTranspose
+    );
+
+    twgl.setUniforms(uniformSetters, uniformsThatAreComputedForEachObject);
+
+    // Set the uniforms that are specific to the this object.
+    twgl.setUniforms(uniformSetters, object.materialUniforms);
+
+    // Draw the geometry.
+    gl.drawElements(gl.TRIANGLES, buffers.numElements, gl.UNSIGNED_SHORT, 0);
+
+  })
+
+  requestAnimationFrame(drawScene);
 
 
   }
